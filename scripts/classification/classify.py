@@ -2,7 +2,7 @@ import argparse
 from autoencoder import Autoencoder
 from util import train_step, test, visualize
 import tensorflow as tf
-
+import tkinter
 
 parser = argparse.ArgumentParser(
     description='Specify the path where the preprocessed datasets are stored')
@@ -92,11 +92,23 @@ train_losses = []
 valid_losses = []
 valid_accuracies = []
 
+
+def _from_rgb(rgb):
+    """
+    translates an rgb tuple of integers to hex
+        Args:
+            - rgb: <tuple> tuple of rgb values
+        Returns:
+            - rgb: <string> rgb value translated to hex
+    """
+    return "#%02x%02x%02x" % rgb
+
+
 with tf.device('/device:gpu:0'):
     # training the model
     for model in models:
         results, trained_model = classify(
-            model, optimizer, 30, train_ds, valid_ds)
+            model, optimizer, 20, train_ds, valid_ds)
         trained_model.summary()
 
         # saving results for visualization
@@ -112,3 +124,31 @@ with tf.device('/device:gpu:0'):
 
     # visualizing losses and accuracy
     #visualize(train_losses, valid_losses, valid_accuracies)
+
+
+root = tkinter.Tk()
+root.geometry("1200x600")
+canvas = tkinter.Canvas(root)
+canvas.pack()
+
+f, l = next(iter(train_ds.take(1)))
+img1 = next(iter(f))
+img2 = next(iter(l))
+
+pred = models[0](f)
+img1 = next(iter(pred))
+
+size = [5, 5]
+offset = [0, 0]
+for image in [img1, img2]:
+
+    for count_x, x in enumerate(image):
+        for count_y, y in enumerate(x):
+            g = int(y[0]*100)
+            canvas.create_rectangle(count_x*size[0]+offset[0], count_y*size[1]+offset[1], count_x*size[0]+size[0]+offset[0], count_y *
+                                    size[1]+size[1]+offset[1], fill=_from_rgb((g, g, g)), outline=_from_rgb((g, g, g)))
+
+    offset = [offset[0]+150, offset[1]]
+
+
+root.mainloop()

@@ -29,7 +29,7 @@ def preprocess(ds):
     ds = ds.map(lambda image, label: (image/255, label/255))
 
     ds = ds.map(lambda image, label: (
-        image+tf.random.normal(shape=tf.shape(image)), label))
+        image+tf.random.normal(shape=tf.shape(image), stddev=0.1), label))
 
     ds = ds.map(lambda image, label: (tf.clip_by_value(image, 0, 1), label))
 

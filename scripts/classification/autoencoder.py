@@ -42,7 +42,7 @@ class Decoder(tf.keras.Model):
         self._l3 = tf.keras.layers.Conv2DTranspose(
             filters=15, kernel_size=4, strides=2, padding="same", activation="relu")
         self._l4 = tf.keras.layers.Conv2DTranspose(
-            filters=20, kernel_size=2, strides=1, padding="same", activation="relu")
+            filters=1, kernel_size=2, strides=1, padding="same", activation="relu")
         # self._l5 = tf.keras.layers.Conv2DTranspose(
         #    filters=1, kernel_size=1, strides=1, padding="same", activation="sigmoid")
 
