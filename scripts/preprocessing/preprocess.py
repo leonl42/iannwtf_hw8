@@ -26,7 +26,7 @@ def preprocess(ds):
         tf.cast(image, tf.float32), tf.cast(label, tf.float32)))
 
     # perfornm -1, 1 min max normalization
-    ds = ds.map(lambda image, label: ((image)/255, label))
+    ds = ds.map(lambda image, label: (image/255, label/255))
 
     ds = ds.map(lambda image, label: (
         image+tf.random.normal(shape=tf.shape(image)), label))

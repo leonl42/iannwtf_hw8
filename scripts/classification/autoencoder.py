@@ -7,11 +7,11 @@ class Encoder(tf.keras.Model):
     def __init__(self, should_output_features):
         super(Encoder, self).__init__()
         self._l1 = tf.keras.layers.Conv2D(
-            filters=10, kernel_size=4, strides=2, padding="same", activation="relu")
-        self._l2 = tf.keras.layers.Conv2D(
             filters=20, kernel_size=4, strides=2, padding="same", activation="relu")
+        self._l2 = tf.keras.layers.Conv2D(
+            filters=30, kernel_size=4, strides=2, padding="same", activation="relu")
         self._l3 = tf.keras.layers.Conv2D(
-            filters=30, kernel_size=2, strides=1, padding="same", activation="relu")
+            filters=40, kernel_size=2, strides=1, padding="same", activation="relu")
 
         self._l4 = tf.keras.layers.GlobalAveragePooling2D()
         self._l5 = tf.keras.layers.Dense(
@@ -40,11 +40,11 @@ class Decoder(tf.keras.Model):
         self._l2 = tf.keras.layers.Conv2DTranspose(
             filters=10, kernel_size=4, strides=2, padding="same", activation="relu")
         self._l3 = tf.keras.layers.Conv2DTranspose(
-            filters=20, kernel_size=4, strides=2, padding="same", activation="relu")
+            filters=15, kernel_size=4, strides=2, padding="same", activation="relu")
         self._l4 = tf.keras.layers.Conv2DTranspose(
-            filters=30, kernel_size=2, strides=1, padding="same", activation="relu")
-        self._l5 = tf.keras.layers.Conv2DTranspose(
-            filters=1, kernel_size=1, strides=1, padding="same", activation="sigmoid")
+            filters=20, kernel_size=2, strides=1, padding="same", activation="relu")
+        # self._l5 = tf.keras.layers.Conv2DTranspose(
+        #    filters=1, kernel_size=1, strides=1, padding="same", activation="sigmoid")
 
     def call(self, x, training):
         x = self._l1(x, training=training)
@@ -53,7 +53,7 @@ class Decoder(tf.keras.Model):
         x = self._l2(x, training=training)
         x = self._l3(x, training=training)
         x = self._l4(x, training=training)
-        x = self._l5(x, training=training)
+        #x = self._l5(x, training=training)
 
         return x
 

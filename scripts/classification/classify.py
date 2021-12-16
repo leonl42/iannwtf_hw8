@@ -82,7 +82,7 @@ test_ds = tf.data.experimental.load(
     args.input+"/test", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32)))
 
 
-learning_rate = 0.1
+learning_rate = 0.001
 optimizer = tf.keras.optimizers.Adam(
     learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
 
