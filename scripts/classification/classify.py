@@ -108,7 +108,7 @@ with tf.device('/device:gpu:0'):
     # training the model
     for model in models:
         results, trained_model = classify(
-            model, optimizer, 1, train_ds, valid_ds)
+            model, optimizer, 50, train_ds, valid_ds)
         trained_model.summary()
 
         # saving results for visualization
