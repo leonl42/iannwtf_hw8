@@ -108,7 +108,7 @@ with tf.device('/device:gpu:0'):
     # training the model
     for model in models:
         results, trained_model = classify(
-            model, optimizer, 20, train_ds, valid_ds)
+            model, optimizer, 1, train_ds, valid_ds)
         trained_model.summary()
 
         # saving results for visualization
@@ -127,7 +127,7 @@ with tf.device('/device:gpu:0'):
 
 
 root = tkinter.Tk()
-root.geometry("1200x600")
+root.geometry("600x600")
 canvas = tkinter.Canvas(root)
 canvas.pack()
 
@@ -136,11 +136,11 @@ img1 = next(iter(f))
 img2 = next(iter(l))
 
 pred = models[0](f)
-img1 = next(iter(pred))
+img3 = next(iter(pred))
 
-size = [5, 5]
+size = [3, 3]
 offset = [0, 0]
-for image in [img1, img2]:
+for image in [img1, img2, img3]:
 
     for count_x, x in enumerate(image):
         for count_y, y in enumerate(x):
