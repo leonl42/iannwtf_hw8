@@ -22,16 +22,14 @@ def preprocess(ds):
       Returns:
         - ds <tensorflow.python.data.ops.dataset_ops.PrefetchDataset>: preprocessed dataset
     """
-    ds = ds.map(lambda image, label: (
-        tf.cast(image, tf.float32), tf.cast(label, tf.float32)))
+    ds = ds.map(lambda image1,image2, label: (tf.cast(image1, tf.float32),tf.cast(image2, tf.float32), label))
 
     # perfornm -1, 1 min max normalization
-    ds = ds.map(lambda image, label: (image/255, label/255))
+    ds = ds.map(lambda image1,image2, label: (image1/255,image2/255, label))
 
-    ds = ds.map(lambda image, label: (
-        image+tf.random.normal(shape=tf.shape(image), stddev=0.3), label))
+    ds = ds.map(lambda image1,image2, label: (image1+tf.random.normal(shape=tf.shape(image1), stddev=0.3), image2, label))
 
-    ds = ds.map(lambda image, label: (tf.clip_by_value(image, 0, 1), label))
+    ds = ds.map(lambda image1,image2, label: (tf.clip_by_value(image1, 0, 1),image2, label))
 
     # cache
     ds = ds.cache()
@@ -44,11 +42,11 @@ def preprocess(ds):
 
 # loading our created raw data
 train_ds = tf.data.experimental.load(
-    args.input+"/train", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8)))
+    args.input+"/train", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8),tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(1), dtype=tf.int64)))
 valid_ds = tf.data.experimental.load(
-    args.input+"/valid", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8)))
+    args.input+"/valid", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8),tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(1), dtype=tf.int64)))
 test_ds = tf.data.experimental.load(
-    args.input+"/test", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8)))
+    args.input+"/test", element_spec=(tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8),tf.TensorSpec(shape=(28, 28, 1), dtype=tf.dtypes.uint8), tf.TensorSpec(shape=(1), dtype=tf.int64)))
 
 # performing preprocessing steps
 train_ds = preprocess(train_ds)

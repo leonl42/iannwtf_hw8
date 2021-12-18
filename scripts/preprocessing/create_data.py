@@ -12,21 +12,16 @@ parser.add_argument('-output', type=str,
 args = parser.parse_args()
 
 
-train_ds_unsplit, test_ds = tfds.load(
-    name="mnist", split=["train", "test"], as_supervised=True)
-
-train_ds = train_ds_unsplit.take(50000)
-valid_ds = train_ds_unsplit.skip(50000)
-
+train_ds,valid_ds, test_ds = tfds.load(
+    name="mnist", split=["train[0%:80%]","train[80%:100%]", "test"], as_supervised=True)
 
 def extract_images(ds):
     images = []
-    for img, _ in ds:
+    targets = []
+    for img, t in ds:
         images.append(img)
-    return tf.data.Dataset.from_tensor_slices((images, images))
-
-#train_ds = np.concatenate([x for x, _ in train_ds], axis=0)
-
+        targets.append(t)
+    return tf.data.Dataset.from_tensor_slices((images, images,targets))
 
 train_ds = extract_images(train_ds)
 valid_ds = extract_images(valid_ds)

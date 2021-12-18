@@ -1,8 +1,10 @@
 import argparse
-from autoencoder import Autoencoder
-from util import train_step, test, visualize
+from autoencoder import AutoencoderConv
+from util import train_step, test, visualize_sample_img,visualize_stat
 import tensorflow as tf
-import tkinter
+from sklearn.manifold import TSNE
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(
     description='Specify the path where the preprocessed datasets are stored')
@@ -29,7 +31,7 @@ def classify(model, optimizer, num_epochs, train_ds, valid_ds):
     tf.keras.backend.clear_session()
 
     # initialize the loss: categorical cross entropy
-    cross_entropy_loss = tf.keras.losses.MeanSquaredError()
+    loss = tf.keras.losses.BinaryCrossentropy()
 
     # initialize lists for later visualization.
     train_losses = []
@@ -38,12 +40,12 @@ def classify(model, optimizer, num_epochs, train_ds, valid_ds):
 
     # testing on our valid_ds once before we begin
     valid_loss, valid_accuracy = test(
-        model, valid_ds, cross_entropy_loss, False)
+        model, valid_ds, loss, is_training=False,visual =True)
     valid_losses.append(valid_loss)
     valid_accuracies.append(valid_accuracy)
 
     # Testing on our train_ds once before we begin
-    train_loss, _ = test(model, train_ds, cross_entropy_loss, False)
+    train_loss, _ = test(model, train_ds, loss, is_training=False, visual=False)
     train_losses.append(train_loss)
 
     # training our model for num_epochs epochs.
@@ -54,9 +56,14 @@ def classify(model, optimizer, num_epochs, train_ds, valid_ds):
         # training (and calculating loss while training)
         epoch_loss_agg = []
 
-        for input, target in train_ds:
+        #visualizing test images each 5 epochs
+        visual = False
+        if epoch%5==0:
+            visual = True
+
+        for input,orig_image, target in train_ds:
             train_loss = train_step(
-                model, input, target, cross_entropy_loss, optimizer, True)
+                model, input, orig_image, loss, optimizer, is_training=True)
             epoch_loss_agg.append(train_loss)
 
         # track training loss
@@ -65,50 +72,37 @@ def classify(model, optimizer, num_epochs, train_ds, valid_ds):
 
         # testing our model in each epoch to track accuracy and loss on the validation set
         valid_loss, valid_accuracy = test(
-            model, valid_ds, cross_entropy_loss, False)
+            model, valid_ds, loss,is_training= False, visual=visual)
         valid_losses.append(valid_loss)
         valid_accuracies.append(valid_accuracy)
 
     results = [train_losses, valid_losses, valid_accuracies]
     return results, model
 
-
 # loading our created raw data
 train_ds = tf.data.experimental.load(
-    args.input+"/train", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32)))
+    args.input+"/train", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32),tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64), dtype=tf.int64)))
 valid_ds = tf.data.experimental.load(
-    args.input+"/valid", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32)))
+    args.input+"/valid", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32),tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64), dtype=tf.int64)))
 test_ds = tf.data.experimental.load(
-    args.input+"/test", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32)))
+    args.input+"/test", element_spec=(tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32),tf.TensorSpec(shape=(64, 28, 28, 1), dtype=tf.dtypes.float32), tf.TensorSpec(shape=(64), dtype=tf.int64)))
 
 
 learning_rate = 0.001
 optimizer = tf.keras.optimizers.Adam(
     learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
 
-models = [Autoencoder([28, 28])]
+models = [AutoencoderConv()]
 
 train_losses = []
 valid_losses = []
 valid_accuracies = []
 
-
-def _from_rgb(rgb):
-    """
-    translates an rgb tuple of integers to hex
-        Args:
-            - rgb: <tuple> tuple of rgb values
-        Returns:
-            - rgb: <string> rgb value translated to hex
-    """
-    return "#%02x%02x%02x" % rgb
-
-
 with tf.device('/device:gpu:0'):
     # training the model
     for model in models:
         results, trained_model = classify(
-            model, optimizer, 50, train_ds, valid_ds)
+            model, optimizer, 5, train_ds, valid_ds)
         trained_model.summary()
 
         # saving results for visualization
@@ -123,32 +117,31 @@ with tf.device('/device:gpu:0'):
     print("Accuracy (test set):", test_accuracy)
 
     # visualizing losses and accuracy
-    #visualize(train_losses, valid_losses, valid_accuracies)
+    #visualize_stat(train_losses, valid_losses, valid_accuracies)
 
+    #encode 1000 samples of test datasets
+    x_data = test_ds.take(16)
+    x_encoded = []
+    t = []
+    x_data = test_ds.take(16)
+    for _,_,target in x_data:
+        #x_encoded.append(trained_model.encoder(x_noise))
+        t.append(target)
 
-root = tkinter.Tk()
-root.geometry("600x600")
-canvas = tkinter.Canvas(root)
-canvas.pack()
+    x_encoded = trained_model.encoder.predict(x_data)
+    # Compute t-SNE embedding of latent space
+    print("Computing t-SNE embedding...")
+    tsne = TSNE(n_components=2,init='pca',learning_rate='auto')
+    X_tsne = tsne.fit_transform(x_encoded)
+    # Plot images according to t-sne embedding
+    print("Plotting t-SNE visualization...")
+    fig, ax = plt.subplots()
+    plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=t)
+    plt.show()
 
-f, l = next(iter(train_ds.take(1)))
-img1 = next(iter(f))
-img2 = next(iter(l))
-
-pred = models[0](f)
-img3 = next(iter(pred))
-
-size = [3, 3]
-offset = [0, 0]
-for image in [img1, img2, img3]:
-
-    for count_x, x in enumerate(image):
-        for count_y, y in enumerate(x):
-            g = int(y[0]*100)
-            canvas.create_rectangle(count_x*size[0]+offset[0], count_y*size[1]+offset[1], count_x*size[0]+size[0]+offset[0], count_y *
-                                    size[1]+size[1]+offset[1], fill=_from_rgb((g, g, g)), outline=_from_rgb((g, g, g)))
-
-    offset = [offset[0]+150, offset[1]]
-
-
-root.mainloop()
+    #for input_img, output_img in test_ds.take(1000):
+    #    latent_vec.append(trained_model.encoder(input_img))
+    #tsne_results = TSNE().fit_transform(latent_vec)
+    #plt.figure(figsize=(16,10))
+    #sns.scatterplot(palette=sns.color_palette("hls", 10),data=latent_vec,legend="full",        alpha=0.3)
+    #plt.show()
