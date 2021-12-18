@@ -4,5 +4,6 @@ größere Veränderungen in allen scripte, nicht mit original data/py comvinirba
 - code modifiziert um dem HW zu entsprechen
 - code vereinfacht
 - code verändert um latent-space zu visualisieren
--V AE nur Ansatz funktioniert nicht, quellen, um dran weiterzuarbeiten ganz oben im .py
+- hübsch gemacht, aber noch nich kommentiert/docstrings
+- VAE nur Ansatz; funktioniert nicht, quellen, um dran weiterzuarbeiten ganz oben im .py
 - Fehlen: interpolation, (für outstanding VAE)
