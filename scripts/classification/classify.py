@@ -109,6 +109,6 @@ with tf.device('/device:gpu:0'):
     #print("Accuracy (test set):", test_accuracy)
 
     # visualizing losses and accuracy
-    #visualize_stat(train_losses, valid_losses, valid_accuracies)
-    #visualize_latent_space(trained_model,test_ds.take(16))
+    visualize_stat(train_losses, valid_losses, valid_accuracies)
+    visualize_latent_space(trained_model,test_ds.take(16))
     visualize_interpolation(trained_model,test_ds.take(2))
