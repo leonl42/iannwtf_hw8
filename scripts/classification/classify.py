@@ -95,7 +95,7 @@ valid_accuracies = []
 with tf.device('/device:gpu:0'):
     # training the model
     for model in models:
-        results, trained_model = classify(model, optimizer, 2, train_ds, valid_ds)
+        results, trained_model = classify(model, optimizer, 10, train_ds, valid_ds)
         trained_model.summary()
 
         # saving results for visualization
@@ -109,6 +109,6 @@ with tf.device('/device:gpu:0'):
     #print("Accuracy (test set):", test_accuracy)
 
     # visualizing losses and accuracy
-    visualize_stat(train_losses, valid_losses, valid_accuracies)
-    visualize_latent_space(trained_model,test_ds.take(16))
+    #visualize_stat(train_losses, valid_losses, valid_accuracies)
+    #visualize_latent_space(trained_model,test_ds.take(16))
     visualize_interpolation(trained_model,test_ds.take(2))

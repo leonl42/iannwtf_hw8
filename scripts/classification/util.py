@@ -80,7 +80,6 @@ def test(model, test_data, loss_function, is_training,visual=True):
 
     return loss, accuracy
 
-
 def visualize_sample_img(target,prediction):
     """
     """
@@ -88,9 +87,7 @@ def visualize_sample_img(target,prediction):
     for i in range(4):
         axs[i,0].imshow(target[i], cmap="Greys_r")
         axs[i,1].imshow(prediction[i], cmap="Greys_r")
-
     plt.show()
-
 
 def visualize_stat(train_losses,valid_losses,valid_accuracies):
     """
@@ -113,6 +110,7 @@ def visualize_stat(train_losses,valid_losses,valid_accuracies):
         axs[1].sharex(axs[0])
         axs[0].set_title(titles[j])
         axs[1].set_title("Last Accuracy: "+str(round(last_accuracy,4)))
+
 
     fig.legend([" Train_ds loss"," Valid_ds loss"," Valid_ds accuracy"],loc="lower right")
     plt.xlabel("Training epoch")
@@ -149,15 +147,18 @@ def interpolate_points(p1, p2, n_steps=10):
 	return np.asarray(vectors)
 
 def visualize_interpolation(model,data):
-    pass
-    #encoded_img= []
-    #for i, (input,_,_) in enumerate(data):
-    #    encoded_img.append(model.encoder.predict(input))
+    encoded_img= []
+    interpolated_imgs=[]
+    for input,_,_ in data:
+        encoded_img.append(model.encoder.predict(input))
 
-    #interpolated_imgs=interpolate_points(encoded_img[0][0].flatten(),encoded_img[1][0].flatten())
+    for i in range(64):
+        interpolated_imgs.append(interpolate_points(encoded_img[0][i].flatten(),encoded_img[1][i].flatten()))
 
-    #fig, axs = plt.subplots(1, 2)
-    #for i in range(2):
-    #    decoded_img = model.decoder(interpolated_imgs[i].reshape(64,10))
-    #    axs[i].imshow(decoded_img[0], cmap="Greys_r")
-    #plt.show()
+    fig, axs = plt.subplots(2, 10)
+    for i in range(10):
+        interpolated_img = tf.convert_to_tensor(np.array(interpolated_imgs)[:,i,:])
+        decoded_img = model.decoder(interpolated_img)
+        axs[0,i].imshow(decoded_img[0], cmap="Greys_r")
+        axs[1,i].imshow(decoded_img[1], cmap="Greys_r")
+    plt.show()
